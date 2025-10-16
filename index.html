@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT-H | HEALTHY HARVEST</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    
+    <!-- XLSX Library for Excel processing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- THEME & COLOR PALETTE --- */
+        :root {
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --text-dark: #2d3748;
+            --text-muted: #718096;
+            --accent-primary: #ffcb47; /* Sunglow Yellow */
+            --accent-secondary: #ffb703; /* Darker Gold */
+            --leaf-green: #2a9d8f;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-color-hover: rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark {
+            --bg-light: #1a202c;
+            --bg-white: #2d3748;
+            --text-dark: #edf2f7;
+            --text-muted: #a0aec0;
+            --border-color: #4a5568;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --shadow-color-hover: rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- BASE & TYPOGRAPHY --- */
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .section-title {
+            font-weight: 900;
+            color: var(--text-dark);
+            border-bottom: 4px solid var(--accent-primary);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .gradient-text {
+            background: linear-gradient(45deg, var(--accent-secondary), var(--leaf-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- HEADER & NAVIGATION --- */
+        nav {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        html.dark nav {
+             background-color: rgba(26, 32, 44, 0.8);
+        }
+        nav a { font-weight: 600; position: relative; transition: color 0.3s ease; }
+        nav a:hover { color: var(--text-dark); }
+        nav a::after {
+            content: ''; position: absolute; bottom: -6px; left: 0;
+            width: 0%; height: 3px; background-color: var(--accent-primary);
+            transition: width 0.3s ease;
+        }
+        nav a:hover::after { width: 100%; }
+
+        /* --- THEME TOGGLE SWITCH --- */
+        .theme-switch-wrapper { display: flex; align-items: center; }
+        .theme-switch { display: inline-block; height: 26px; position: relative; width: 50px; }
+        .theme-switch input { display:none; }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 18px; left: 4px; position: absolute; transition: .4s; width: 18px; }
+        input:checked + .slider { background-color: var(--leaf-green); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+
+        /* --- BUTTONS & CARDS --- */
+        .btn-primary {
+            background-color: var(--accent-primary); color: #1a202c; font-weight: 600;
+            border-radius: 0.5rem; padding: 0.75rem 2rem;
+            box-shadow: 0 4px 15px rgba(255, 203, 71, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 7px 20px rgba(255, 203, 71, 0.6);
+        }
+        .tech-card {
+            background: var(--bg-white); border: 1px solid var(--border-color);
+            border-radius: 1rem; box-shadow: 0 8px 30px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .tech-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 40px var(--shadow-color-hover);
+        }
+        .card-icon { 
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.3s ease;
+        }
+        .tech-card:hover .card-icon { transform: scale(1.1); }
+
+        /* --- QUERY ASSISTANT UI --- */
+        .chat-window { background: var(--bg-white); border: 1px solid var(--border-color); }
+        .chat-messages { background-color: var(--bg-light); }
+        .chat-message.user { background-color: var(--accent-primary); color: var(--text-dark); }
+        .chat-message.bot { background-color: var(--bg-white); color: var(--text-dark); border: 1px solid var(--border-color); }
+        .typing-indicator span {
+            height: 8px; width: 8px; margin: 0 2px;
+            background-color: var(--text-muted); border-radius: 50%; display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        /* --- ANIMATIONS & MODAL --- */
+        .animate-on-scroll { opacity: 0; transform: translateY(40px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-center py-4">
+                <a href="#" class="flex items-center gap-3">
+                    <i class="fas fa-leaf text-4xl" style="color: var(--leaf-green);"></i>
+                    <div class="flex flex-col leading-tight">
+                        <span class="font-black text-xl text-dark">Project-H</span>
+                        <span class="text-sm font-semibold" style="color: var(--accent-secondary);">Healthy Harvest</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex items-center space-x-8 text-muted">
+                    <a href="#tech-stack">Technology</a>
+                    <a href="#project-explanation">Explanation</a>
+                    <a href="#weather-advisor">Advisor</a>
+                    <a href="#gallery">Gallery</a>
+                    <a href="#query-assistant">Query Assistant</a>
+                    <a href="#team">Team</a>
+                    <a href="#data-hub">Data Hub</a>
+                </div>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-2xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="theme-switch-wrapper ml-4">
+                        <label class="theme-switch" for="checkbox-mobile">
+                            <input type="checkbox" id="checkbox-mobile" />
+                            <div class="slider round"></div>
+                        </label>
+                    </div>
+                </div>
+                 <div class="hidden md:block theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pt-2 pb-4 space-y-2">
+            <a href="#tech-stack" class="block py-2">Technology</a>
+            <a href="#project-explanation" class="block py-2">Explanation</a>
+            <a href="#weather-advisor" class="block py-2">Advisor</a>
+            <a href="#gallery" class="block py-2">Gallery</a>
+            <a href="#query-assistant" class="block py-2">Query Assistant</a>
+            <a href="#team" class="block py-2">Team</a>
+            <a href="#data-hub" class="block py-2">Data Hub</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="text-center py-24 md:py-36 px-6">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-5xl md:text-7xl font-black text-dark leading-tight animate-on-scroll">Smarter Farming, <br><span class="gradient-text">Healthier Harvests.</span></h1>
+                <p class="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-muted animate-on-scroll" style="transition-delay: 150ms;">Our integrated IoT platform brings data-driven precision to your fields, optimizing irrigation for a sustainable and bountiful future.</p>
+                <div class="mt-10 animate-on-scroll" style="transition-delay: 300ms;">
+                    <a href="#tech-stack" class="btn-primary">Explore The Technology</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technology Stack Section -->
+        <section class="py-20 bg-white dark:bg-gray-800" id="tech-stack">
+            <div class="max-w-7xl mx-auto px-6 space-y-16">
+                <h2 class="section-title text-4xl md:text-5xl text-center mx-auto animate-on-scroll">Our Technology Stack</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <!-- Cards will be populated here by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Explanation Section -->
+        <section class="py-20" id="project-explanation">
+            <div class="max-w-4xl mx-auto px-6 space-y-8">
+                <h2 class="section-title text-4xl md:text-5xl text-center mx-auto animate-on-scroll">A More Detailed Explanation</h2>
+                <div class="text-lg text-muted text-left space-y-6 animate-on-scroll" style="transition-delay: 150ms;">
+                    <div>
+                        <h3 class="text-2xl font-bold text-dark dark:text-white mb-3">Ideation</h3>
+                        <p>We have found mainly 3 problems that have concerned us:</p>
+                        <ul class="list-disc list-inside space-y-2 mt-2">
+                            <li>On dry lands, farmers mistakenly harvest a crop at a wrong time which leads to a wrong crop. This furtherly pushes the farmers into losses and much more poverty , and It also affects agriculture in a certain region badly.</li>
+                            <li>Insects are mostly attracted to the crops ,These insects damage crops , which again Brings loss to the farmer and affects agricultural practice .</li>
+                            <li>Due to lack of awareness of crop health and Moisture-levels, farmers are unable to water the crops on time , This furtherly affects crop yielding.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-dark dark:text-white mb-3">Outcomes</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Timely Crop Harvesting:</strong> This will help farmers harvest crops at the optimal time, reducing losses caused by harvesting errors in dry lands.</li>
+                            <li><strong>Insect Prevention and Crop Protection:</strong> By recommending appropriate organic or inorganic pesticides, the device will protect crops from insect damage, improving overall crop health.</li>
+                            <li><strong>Improved Water Management:</strong> Automated watering through soil moisture sensors will ensure that crops receive the right amount of water at the right time.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Weather Advisor Section -->
+        <section class="py-20" id="weather-advisor">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-6">
+                <h2 class="section-title text-4xl md:text-5xl animate-on-scroll">Local Crop Advisor</h2>
+                <p class="text-lg text-muted animate-on-scroll" style="transition-delay: 150ms;">
+                    Allow access to your location to receive real-time weather data and personalized crop recommendations for your area.
+                </p>
+                <div class="animate-on-scroll" style="transition-delay: 300ms;">
+                    <button id="get-weather-btn" class="btn-primary">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Get Local Advice
+                    </button>
+                </div>
+                <div id="weather-results" class="mt-8 text-left"></div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section class="py-20 bg-white dark:bg-gray-800" id="gallery">
+            <div class="max-w-6xl mx-auto px-6 space-y-12">
+                <h2 class="section-title text-4xl md:text-5xl text-center mx-auto animate-on-scroll">Project in Action</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                    <figure class="flex flex-col items-center animate-on-scroll w-full">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <img alt="IoT Sensors in a field" class="w-full h-full object-cover gallery-item" src="iotsensors.jpg"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">IoT Sensors in Field</figcaption>
+                    </figure>
+                    <figure class="flex flex-col items-center animate-on-scroll w-full" style="transition-delay: 150ms;">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <img alt="A solar powered farm" class="w-full h-full object-cover gallery-item" src="solarfarm.jpg"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">Solar Powered Farm</figcaption>
+                    </figure>
+                    <figure class="flex flex-col items-center animate-on-scroll w-full" style="transition-delay: 300ms;">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <img alt="Dashboard showing AI data analysis" class="w-full h-full object-cover gallery-item" src="ai_analysis.png"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">AI Data Analysis</figcaption>
+                    </figure>
+                    <figure class="flex flex-col items-center animate-on-scroll w-full" style="transition-delay: 450ms;">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <img alt="Automated irrigation system" class="w-full h-full object-cover gallery-item" src="automated_irrigation.png"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">Automated Irrigation</figcaption>
+                    </figure>
+                    <figure class="flex flex-col items-center animate-on-scroll w-full" style="transition-delay: 600ms;">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <img alt="Farmer interacting with the UI" class="w-full h-full object-cover gallery-item" src="farmer_interface.png"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">Farmer Interface</figcaption>
+                    </figure>
+                    <figure class="flex flex-col items-center animate-on-scroll w-full" style="transition-delay: 750ms;">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                           <img alt="Prototype of the device" class="w-full h-full object-cover gallery-item" src="prototype.jpg"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">Device Prototype</figcaption>
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- Future Proposed Model Section -->
+        <section class="py-20" id="future-proposed-model">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-6">
+                <h2 class="section-title text-4xl md:text-5xl animate-on-scroll">Future Proposed Model</h2>
+                <div class="flex justify-center animate-on-scroll" style="transition-delay: 150ms;">
+                    <figure class="flex flex-col items-center w-full max-w-lg">
+                        <div class="w-full aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+                            <img alt="Further proposed device" class="w-full h-full object-cover gallery-item" src="product.jpg"/>
+                        </div>
+                        <figcaption class="mt-3 font-semibold text-muted">Proposed Device</figcaption>
+                    </figure>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Query Assistant Section -->
+        <section class="py-20" id="query-assistant">
+            <div class="max-w-6xl mx-auto px-6 space-y-12">
+                <h2 class="section-title text-4xl md:text-5xl text-center mx-auto animate-on-scroll">Query Assistant</h2>
+                <div class="chat-window max-w-2xl mx-auto p-6 rounded-xl shadow-2xl animate-on-scroll" style="transition-delay: 150ms;">
+                    <div id="chat-messages" class="chat-messages p-4 h-80 overflow-y-auto rounded-lg">
+                        <!-- Questions will be loaded by JavaScript -->
+                    </div>
+                    <form id="chat-form" class="flex items-center gap-4 mt-4">
+                        <input type="text" id="chat-input" placeholder="Type your message..." class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent transition bg-transparent" autocomplete="off">
+                        <button type="submit" class="btn-primary flex-shrink-0 !py-3 !px-5"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section class="py-20 bg-white dark:bg-gray-800" id="team">
+            <div class="max-w-7xl mx-auto px-6 space-y-12">
+                <h2 class="section-title text-4xl md:text-5xl text-center mx-auto animate-on-scroll">Meet the Innovators</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                    <!-- Team member cards will be populated here by JS -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Data Hub Section -->
+        <section class="py-20" id="data-hub">
+             <div class="max-w-3xl mx-auto px-6 text-center space-y-6">
+                <h2 class="section-title text-4xl md:text-5xl animate-on-scroll">Farm Data Hub</h2>
+                <p class="text-lg text-muted animate-on-scroll" style="transition-delay: 150ms;">Upload your agricultural data to gain powerful insights. Our platform makes it simple to store, visualize, and act on your progress.</p>
+                <div class="p-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 animate-on-scroll" style="transition-delay: 300ms;">
+                    <form id="excelForm" class="flex flex-col items-center gap-4">
+                         <div id="drop-zone" class="relative w-full p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors duration-300">
+                             <label for="excelFile" id="file-label" class="cursor-pointer text-muted"><i class="fas fa-cloud-upload-alt text-4xl mb-3"></i><br>Choose an Excel file (.xlsx, .xls) or drag it here.</label>
+                             <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" required class="opacity-0 absolute h-full w-full left-0 top-0 cursor-pointer">
+                         </div>
+                        <button type="submit" class="btn-primary w-full md:w-auto">Analyze My Data</button>
+                    </form>
+                    <div id="uploadStatus" class="mt-4 font-semibold h-5"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Data Analyzer Section -->
+        <section class="py-20 bg-white dark:bg-gray-800" id="ai-data-analyzer">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-6">
+                <h2 class="section-title text-4xl md:text-5xl animate-on-scroll">AI Data Analyzer</h2>
+                <div class="mt-8 flex justify-center items-center animate-on-scroll" style="transition-delay: 150ms;">
+                    <a href="https://sheetguru.preview.emergentagent.com/" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-gray-700 p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center gap-4 text-center w-full max-w-xs">
+                        <div class="flex items-center justify-center gap-6">
+                            <i class="fas fa-chart-line text-5xl text-leaf-green"></i>
+                            <i class="fas fa-plus text-2xl text-muted"></i>
+                            <i class="fas fa-laptop-code text-5xl" style="color: var(--accent-secondary);"></i>
+                        </div>
+                        <span class="font-bold text-lg text-dark dark:text-white mt-2">Launch AI Data Analyzer</span>
+                        <p class="text-sm text-muted">Click to analyze your data in a new window.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- External AI Chatbot Placeholder Section -->
+        <section class="py-20" id="external-chatbot-section">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-6">
+                <h2 class="section-title text-4xl md:text-5xl animate-on-scroll">External AI Chatbot</h2>
+                <div class="mt-8 flex justify-center items-center animate-on-scroll" style="transition-delay: 150ms;">
+                    <a href="https://app.agentx.so/shared-chat/?agent=68eba3632660c3ce397df67f" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-gray-700 p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center gap-4 text-center w-full max-w-xs">
+                        <div class="flex items-center justify-center gap-6">
+                            <i class="fas fa-robot text-5xl text-leaf-green"></i>
+                            <i class="fas fa-plus text-2xl text-muted"></i>
+                            <i class="fas fa-wheat-awn text-5xl" style="color: var(--accent-secondary);"></i>
+                        </div>
+                        <span class="font-bold text-lg text-dark dark:text-white mt-2">Launch AI Chatbot</span>
+                        <p class="text-sm text-muted">Click to open the chat in a new window.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center border-t border-gray-200 dark:border-gray-700 mt-20">
+        <p class="text-muted">2025 TEAM PROJECT-H | HEALTHY HARVEST.</p>
+        <div class="mt-2 text-muted text-sm space-x-4">
+            <a href="mailto:vamsikrishnachintalapudi@gmail.com" class="hover:text-leaf-green transition">vamsikrishnachintalapudi@gmail.com</a>
+            <span>|</span>
+            <a href="mailto:atlurikarthik2@gmail.com" class="hover:text-leaf-green transition">atlurikarthik2@gmail.com</a>
+        </div>
+    </footer>
+
+    <!-- Image Modal Structure -->
+    <div id="imageModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex justify-center items-center z-50">
+        <div class="max-w-4xl max-h-[90vh] p-4">
+            <img id="modalImage" src="" alt="Enlarged gallery view" class="max-w-full max-h-full rounded-lg shadow-2xl">
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <a href="#" id="back-to-top" class="fixed bottom-8 right-8 bg-accent-primary text-gray-800 w-12 h-12 rounded-full flex items-center justify-center shadow-lg text-xl opacity-0 invisible transition-all duration-300 hover:scale-110">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- IMPORTANT: PASTE YOUR API KEYS HERE ---
+        const weatherApiKey = '65aa87b806f341df9a0b7e9a4c5a64ff';
+        // Note: Gemini API Key has been removed as per request.
+
+        // --- DATA FOR DYNAMIC CONTENT ---
+        const techStackData = [
+            { icon: 'fa-microchip', title: 'Microcontroller', description: 'The brain of the operation, controlling device logic and making intelligent irrigation decisions.' },
+            { icon: 'fa-temperature-half', title: 'Climate Sensors', description: 'Measures ambient temperature and humidity to provide a complete environmental picture.' },
+            { icon: 'fa-camera-retro', title: 'Image Sensors', description: 'Monitors crop health and growth stages visually, detecting issues before they spread.' },
+            { icon: 'fa-solar-panel', title: 'Solar Panels', description: 'Provides sustainable, off-grid power to the entire system, ensuring constant operation.' },
+            { icon: 'fa-vial', title: 'Soil Testers', description: 'Analyzes soil pH and nutrient levels to recommend precise fertilization strategies.' },
+            { icon: 'fa-database', title: 'Central Database', description: 'Securely stores all collected data for historical analysis and pattern recognition.' },
+            { icon: 'fa-cloud', title: 'Cloud Platform', description: 'Enables remote access, data processing, and scalability from anywhere in the world.' },
+            { icon: 'fa-robot', title: 'Query Assistant', description: 'Provides instant support and answers to farmers based on real-time and historical data.' },
+        ];
+        
+        const teamData = [
+            { name: 'A. KARTHIKEYAN', role: 'Lead Researcher', description: 'Passionate about solving agricultural problems using smart tech.' },
+            { name: 'K. KARTHIKEYA', role: 'Data Scientist', description: 'Analyzes the collected farm data to generate actionable insights.' },
+            { name: 'CH. VAMSI KRISHNA', role: 'Asst. Team Lead', description: 'Helps lead the team and designed this web experience.' },
+            { name: 'V. SARAVAN', role: 'Embedded Systems Dev', description: 'Built and integrated hardware with software for seamless automation.' },
+            { name: 'T.BINDU PRIYA', role: 'Frontend & Cloud Storage Developer', description: 'Develops the user interface and manages cloud data infrastructure.' },
+            { name: 'J.POOJITHA', role: 'Frontend & Cloud Storage Developer', description: 'Focuses on system design, UI integration, and ensuring performance.' }
+        ];
+
+        // --- DYNAMIC CONTENT RENDERING ---
+        const techStackContainer = document.querySelector('#tech-stack .grid');
+        techStackData.forEach((item, index) => {
+            const delay = index * 100;
+            techStackContainer.innerHTML += `
+                <article class="tech-card p-8 text-center animate-on-scroll" style="transition-delay: ${delay}ms;">
+                    <i class="fas ${item.icon} card-icon mb-4"></i>
+                    <h4 class="text-2xl font-bold mb-2">${item.title}</h4>
+                    <p class="text-muted">${item.description}</p>
+                </article>
+            `;
+        });
+        
+        const teamContainer = document.querySelector('#team .grid');
+        teamData.forEach((member, index) => {
+            const delay = index * 150;
+            teamContainer.innerHTML += `
+                <div class="tech-card p-6 text-center animate-on-scroll" style="transition-delay: ${delay}ms;">
+                    <h4 class="text-xl font-bold">${member.name}</h4>
+                    <p class="text-sm font-semibold text-accent-secondary mt-1">${member.role}</p>
+                    <p class="text-muted mt-3 text-sm">${member.description}</p>
+                </div>
+            `;
+        });
+
+        // --- THEME TOGGLE LOGIC ---
+        const themeToggle = document.getElementById('checkbox');
+        const themeToggleMobile = document.getElementById('checkbox-mobile');
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+            document.documentElement.setAttribute('class', currentTheme);
+            if (currentTheme === 'dark') {
+                themeToggle.checked = true;
+                themeToggleMobile.checked = true;
+            }
+        }
+        function handleThemeChange(e) {
+            const isChecked = e.target.checked;
+            if (isChecked) {
+                document.documentElement.setAttribute('class', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('class', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+            themeToggle.checked = isChecked;
+            themeToggleMobile.checked = isChecked;
+        }
+        themeToggle.addEventListener('change', handleThemeChange);
+        themeToggleMobile.addEventListener('change', handleThemeChange);
+
+        // --- MOBILE MENU TOGGLE ---
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+        });
+
+        // --- INTERSECTION OBSERVER FOR ANIMATIONS ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+        
+        // --- FILE UPLOAD & PROCESSING LOGIC (For Data Hub) ---
+        const excelForm = document.getElementById('excelForm');
+        const excelFileInput = document.getElementById('excelFile');
+        const fileLabel = document.getElementById('file-label');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const dropZone = document.getElementById('drop-zone');
+
+        excelFileInput.addEventListener('change', () => {
+            if (excelFileInput.files.length > 0) {
+                updateFileLabel(excelFileInput.files[0].name);
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-leaf-green', 'bg-gray-100', 'dark:bg-gray-700');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-leaf-green', 'bg-gray-100', 'dark:bg-gray-700');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-leaf-green', 'bg-gray-100', 'dark:bg-gray-700');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                excelFileInput.files = files;
+                updateFileLabel(files[0].name);
+            }
+        });
+
+        function updateFileLabel(fileName) {
+            fileLabel.innerHTML = `<i class="fas fa-check-circle text-leaf-green mr-2"></i>Selected: ${fileName}`;
+        }
+
+        excelForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const file = excelFileInput.files[0];
+            if (!file) {
+                uploadStatus.textContent = 'Please select a file first.';
+                uploadStatus.style.color = 'red';
+                return;
+            }
+            uploadStatus.textContent = 'Processing...';
+            uploadStatus.style.color = 'var(--text-muted)';
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                sendDataToBackend(jsonData);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        async function sendDataToBackend(jsonData) {
+            uploadStatus.textContent = 'Uploading to database...';
+            uploadStatus.style.color = 'var(--accent-secondary)';
+            try {
+                const response = await fetch('http://localhost:3000/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jsonData)
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const result = await response.json();
+                uploadStatus.innerHTML = `✅ Success! ${result.message}`;
+                uploadStatus.style.color = 'var(--leaf-green)';
+                excelForm.reset();
+                fileLabel.innerHTML = '<i class="fas fa-cloud-upload-alt text-4xl mb-3"></i><br>Choose another file or drag it here.';
+            } catch (error) {
+                console.error('Error uploading data:', error);
+                uploadStatus.innerHTML = `❌ Error! Could not save data. Is the backend running?`;
+                uploadStatus.style.color = 'red';
+            }
+        }
+        
+        // --- GALLERY MODAL LOGIC ---
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            item.addEventListener('click', () => {
+                modalImage.src = item.src;
+                imageModal.classList.add('active');
+            });
+        });
+        imageModal.addEventListener('click', () => imageModal.classList.remove('active'));
+
+        // --- WEATHER ADVISOR LOGIC ---
+        const getWeatherBtn = document.getElementById('get-weather-btn');
+        const weatherResults = document.getElementById('weather-results');
+        getWeatherBtn.addEventListener('click', () => {
+            if (weatherApiKey === 'YOUR_OPENWEATHERMAP_API_KEY' || weatherApiKey === '') {
+                weatherResults.innerHTML = `<p class="text-red-500 text-center font-bold">Please add a valid OpenWeatherMap API key in the script.</p>`;
+                return;
+            }
+            weatherResults.innerHTML = `<p class="text-center">Fetching location...</p>`;
+            navigator.geolocation.getCurrentPosition(locationSuccess, locationError);
+        });
+
+        async function locationSuccess(position) {
+            const { latitude, longitude } = position.coords;
+            weatherResults.innerHTML = `<p class="text-center">Fetching weather data...</p>`;
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${weatherApiKey}&units=metric`;
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('Weather data not available.');
+                const data = await response.json();
+                displayWeather(data);
+            } catch (error) {
+                weatherResults.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+            }
+        }
+
+        function locationError() {
+            weatherResults.innerHTML = `<p class="text-red-500 text-center">Unable to retrieve your location. Please enable location services.</p>`;
+        }
+        
+        function displayWeather(data) {
+            const { name, main, weather } = data;
+            const cropSuggestion = suggestCrop(main.temp);
+            weatherResults.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-2">Current Weather in ${name}</h3>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-5xl font-bold">${Math.round(main.temp)}°C</p>
+                            <p class="text-muted capitalize">${weather[0].description}</p>
+                        </div>
+                        <img src="http://openweathermap.org/img/wn/${weather[0].icon}@2x.png" alt="${weather[0].description}">
+                    </div>
+                    <hr class="my-4 border-gray-200 dark:border-gray-600">
+                    <h4 class="text-xl font-bold mb-2">🌱 Crop Suggestion</h4>
+                    <p class="text-muted">Based on the current temperature of ${Math.round(main.temp)}°C and the time of year, we recommend planting: <strong class="text-leaf-green">${cropSuggestion}</strong>.</p>
+                </div>
+            `;
+        }
+        
+        function suggestCrop(temperature) {
+            const month = new Date().getMonth(); // 0 = January, 11 = December
+            if (temperature > 25) { // Hot weather
+                if (month > 4 && month < 9) return "Rice, Maize, or Cotton (Kharif Season)";
+                return "Tomatoes or Brinjal";
+            } else if (temperature > 15) { // Moderate weather
+                if (month > 8 || month < 3) return "Wheat, Barley, or Mustard (Rabi Season)";
+                return "Okra or Peppers";
+            } else { // Cool weather
+                return "Potatoes, Carrots, or Peas";
+            }
+        }
+
+        // --- OFFLINE QUERY ASSISTANT LOGIC ---
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        const qaData = {
+            "what is project-h: healthy harvest?": "Healthy Harvest is a smart farming project that uses an integrated IoT platform to bring data-driven precision to agriculture. Its main goal is to optimize irrigation and improve crop yields for a more sustainable future.",
+            "what specific problems does this project solve for farmers?": "The project tackles three main issues: harvesting crops at the wrong time in dry lands, crop damage caused by insects, and improper watering due to a lack of real-time data on soil moisture and crop health.",
+            "how does the system work?": "It uses various IoT sensors (for soil, climate, and images) to collect live data from the fields. This data is then analyzed to make intelligent decisions, such as when to automatically water the crops, ensuring they get exactly what they need.",
+            "what are the key technologies used?": "The system is built using a central microcontroller, climate and soil sensors, image sensors for monitoring, and solar panels for power. All the data collected is managed on a cloud platform for remote access and analysis.",
+            "how do the soil sensors help?": "The soil sensors are critical for efficient water management. They measure the exact moisture level in the soil, allowing the system to automate irrigation. This prevents both under-watering and over-watering, saving water and improving crop health.",
+            "is the system sustainable?": "Yes, sustainability is a core feature. The entire system is designed to be powered by solar panels, which allows it to operate off-grid and ensures a constant, eco-friendly power supply.",
+            "what are the main benefits for a farmer?": "A farmer using this project can expect to harvest crops at the most optimal time, get better protection for crops against insects through timely advice, and achieve improved water management, all of which lead to healthier crops and better yields.",
+            "what is the \"farm data hub\" for?": "The Farm Data Hub is a feature that allows a user to upload their own agricultural data using an Excel file. The platform can then store and analyze this data to provide powerful insights into their farm's performance and progress over time.",
+            "how does the \"local crop advisor\" work?": "The Local Crop Advisor uses your device's location to fetch real-time local weather data. Based on the current temperature and time of year, it provides personalized suggestions for which crops would be best to plant in your specific area.",
+            "who is the team behind project-h?": "Project-H was created by a multi-disciplinary team of innovators, including a Lead Researcher, Frontend and Embedded Systems Developers, and a Data Scientist, who all collaborated to design and build the system.",
+            "who are the members of the healthy harvest team?": "The team behind Project-H: Healthy Harvest consists of: A. KARTHIKEYAN, K. KARTHIKEYA, CH. VAMSI KRISHNA, V. SARAVAN, T.BINDU PRIYA, and J.POOJITHA."
+        };
+
+        // Hide the original form
+        chatForm.style.display = 'none';
+
+        // Convert questions object to an array for easier iteration
+        const questions = Object.keys(qaData);
+
+        function displayInitialQuestions() {
+            chatMessages.innerHTML = ''; // Clear existing messages
+            
+            const welcomeMessage = "Hello! Ask me about the project by clicking one of the questions below.";
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message bot p-4 rounded-2xl mb-3';
+            
+            const welcomeText = document.createElement('p');
+            welcomeText.textContent = welcomeMessage;
+            messageDiv.appendChild(welcomeText);
+
+            const questionsList = document.createElement('div');
+            questionsList.className = 'mt-4 space-y-2';
+            
+            questions.forEach(question => {
+                const questionBtn = document.createElement('button');
+                questionBtn.className = 'faq-question block w-full text-left p-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 font-medium text-sm';
+                // Capitalize first letter for a cleaner look
+                const displayText = question.charAt(0).toUpperCase() + question.slice(1);
+                questionBtn.textContent = displayText.replace(/"/g, ''); // Remove quotes for display
+                questionBtn.dataset.key = question; // Store original key
+                questionsList.appendChild(questionBtn);
+            });
+            
+            messageDiv.appendChild(questionsList);
+            chatMessages.appendChild(messageDiv);
+        }
+
+        // Initial state on page load
+        displayInitialQuestions();
+
+        chatMessages.addEventListener('click', function(e) {
+            const target = e.target;
+
+            // Handle question clicks using event delegation
+            if (target.classList.contains('faq-question')) {
+                const questionKey = target.dataset.key;
+                const questionText = target.textContent;
+                const answerText = qaData[questionKey];
+
+                chatMessages.innerHTML = ''; // Clear the questions list
+                appendMessage(questionText, 'user');
+                showTypingIndicator();
+
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    if (answerText) {
+                        appendMessage(answerText, 'bot');
+                    }
+                    
+                    // Add a "Back to Questions" button
+                    const backBtn = document.createElement('button');
+                    backBtn.id = 'back-to-questions';
+                    backBtn.className = 'mt-4 text-sm font-semibold text-leaf-green hover:underline';
+                    backBtn.innerHTML = '<i class="fas fa-arrow-left mr-2"></i>Back to all questions';
+                    chatMessages.appendChild(backBtn);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                }, 1000);
+            }
+
+            // Handle "Back to Questions" button click
+            if (target.id === 'back-to-questions' || target.parentElement.id === 'back-to-questions') {
+                displayInitialQuestions();
+            }
+        });
+
+        function appendMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${type} max-w-[80%] py-3 px-4 rounded-2xl mb-3 break-words whitespace-pre-wrap ${type === 'user' ? 'ml-auto rounded-br-none bg-accent-primary text-gray-800' : 'mr-auto rounded-bl-none bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600'}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'chat-message bot max-w-[80%] py-3 px-4 rounded-2xl mb-3 mr-auto rounded-bl-none bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600';
+            typingDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        // --- BACK TO TOP BUTTON LOGIC ---
+        const backToTopButton = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+            } else {
+                backToTopButton.classList.add('opacity-0', 'invisible');
+            }
+        });
+        backToTopButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    });
+    </script>
+</body>
+</html>
+
